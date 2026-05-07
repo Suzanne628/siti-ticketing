@@ -1,0 +1,862 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>시티 X 라컴 북살롱 콘서트 - 예매 프로토타입</title>
+<style>
+:root{
+  --color-background-primary:#ffffff;
+  --color-background-secondary:#f1efe8;
+  --color-background-success:#eaf3de;
+  --color-background-warning:#faeeda;
+  --color-background-danger:#fcebeb;
+  --color-text-primary:#1a1a1a;
+  --color-text-secondary:#5f5e5a;
+  --color-text-tertiary:#888780;
+  --color-text-success:#27500a;
+  --color-text-warning:#633806;
+  --color-text-danger:#791f1f;
+  --color-border-tertiary:rgba(0,0,0,0.1);
+  --color-border-secondary:rgba(0,0,0,0.2);
+  --border-radius-md:8px;
+  --border-radius-lg:12px;
+  --font-mono:ui-monospace,SFMono-Regular,"SF Mono",Consolas,"Liberation Mono",Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --color-background-primary:#1c1c1f;
+    --color-background-secondary:#2a2a2d;
+    --color-background-success:#173404;
+    --color-background-warning:#412402;
+    --color-background-danger:#501313;
+    --color-text-primary:#f5f5f0;
+    --color-text-secondary:#b4b2a9;
+    --color-text-tertiary:#888780;
+    --color-text-success:#c0dd97;
+    --color-text-warning:#fac775;
+    --color-text-danger:#f09595;
+    --color-border-tertiary:rgba(255,255,255,0.12);
+    --color-border-secondary:rgba(255,255,255,0.22);
+  }
+}
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{font-family:-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo","Pretendard","Noto Sans KR","Segoe UI",Roboto,sans-serif;background:#fafaf7;color:var(--color-text-primary);min-height:100vh;line-height:1.5;-webkit-font-smoothing:antialiased;}
+@media (prefers-color-scheme: dark){body{background:#0f0f10;}}
+button{font-family:inherit;}
+
+.tk-frame{background:var(--color-background-secondary);min-height:100vh;padding:2rem 1rem;display:flex;flex-direction:column;align-items:center;gap:14px;}
+.tk-hint{font-size:12px;color:var(--color-text-tertiary);text-align:center;}
+.tk-phone{width:340px;background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-tertiary);overflow:hidden;display:flex;flex-direction:column;height:660px;position:relative;box-shadow:0 4px 24px rgba(0,0,0,0.06);}
+.tk-head{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:0.5px solid var(--color-border-tertiary);font-size:15px;font-weight:500;flex-shrink:0;}
+.tk-head-split{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:0.5px solid var(--color-border-tertiary);font-size:15px;font-weight:500;flex-shrink:0;}
+.tk-body{padding:14px;flex:1;display:flex;flex-direction:column;gap:12px;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.tk-body::-webkit-scrollbar{width:3px;}
+.tk-body::-webkit-scrollbar-track{background:transparent;}
+.tk-body::-webkit-scrollbar-thumb{background:var(--color-border-secondary);border-radius:2px;}
+.tk-cta{padding:12px 14px;border-top:0.5px solid var(--color-border-tertiary);flex-shrink:0;}
+.tk-cta-stack{display:flex;flex-direction:column;gap:6px;}
+.tk-btn{width:100%;border:none;padding:13px;border-radius:var(--border-radius-md);font-size:14px;font-weight:500;cursor:pointer;transition:opacity 0.15s;}
+.tk-btn:active{opacity:0.85;}
+.tk-btn:disabled{opacity:0.4;cursor:not-allowed;}
+.tk-icon-btn{width:28px;height:28px;background:transparent;border:0;outline:none;box-shadow:none;border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--color-text-primary);padding:0;}
+.tk-icon-btn:hover{background:var(--color-background-secondary);}
+.tk-icon-btn:focus,.tk-icon-btn:focus-visible{outline:none;box-shadow:none;border:0;}
+.tk-square-btn{width:28px;height:28px;background:transparent;border:0.5px solid var(--color-border-secondary);border-radius:7px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--color-text-primary);padding:0;}
+.tk-square-btn:hover{background:var(--color-background-secondary);}
+.tk-qty-btn{width:28px;height:28px;background:transparent;border:0;outline:none;box-shadow:none;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--color-text-secondary);padding:0;}
+.tk-qty-btn:hover:not(:disabled){background:var(--color-background-secondary);color:var(--color-text-primary);}
+.tk-qty-btn:disabled{cursor:not-allowed;opacity:0.35;}
+.tk-qty-btn:focus,.tk-qty-btn:focus-visible{outline:none;box-shadow:none;}
+.tk-row-label{font-size:13px;font-weight:500;margin-bottom:7px;}
+.tk-meta{display:grid;grid-template-columns:64px 1fr;gap:8px 12px;font-size:12px;line-height:1.4;}
+.tk-meta-key{color:var(--color-text-tertiary);}
+.tk-meta-val{color:var(--color-text-secondary);word-break:break-all;}
+.tk-list-item{cursor:pointer;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-md);padding:12px;transition:background 0.15s;}
+.tk-list-item:hover{background:var(--color-background-secondary);}
+.tk-page{display:none;flex:1;flex-direction:column;min-height:0;}
+.tk-page.active{display:flex;}
+.tk-agree-row{display:flex;align-items:center;gap:10px;padding:10px 12px;cursor:pointer;font-size:12px;color:var(--color-text-secondary);user-select:none;}
+.tk-agree-row:hover{background:var(--color-background-secondary);}
+.tk-agree-master{border-bottom:0.5px solid var(--color-border-tertiary);}
+.tk-cb{width:18px;height:18px;appearance:none;-webkit-appearance:none;border:1.5px solid var(--color-border-secondary);border-radius:4px;cursor:pointer;position:relative;flex-shrink:0;margin:0;padding:0;background:transparent;transition:all 0.15s;}
+.tk-cb:checked{background:#FF273D;border-color:#FF273D;}
+.tk-cb:checked::after{content:'';position:absolute;top:1px;left:5px;width:4px;height:9px;border:solid white;border-width:0 2px 2px 0;transform:rotate(45deg);}
+.tk-cb:focus,.tk-cb:focus-visible{outline:none;box-shadow:none;}
+.tk-chev{color:var(--color-text-tertiary);flex-shrink:0;}
+.tk-input-label{font-size:11px;color:var(--color-text-tertiary);margin-bottom:4px;}
+.tk-input{width:100%;font-family:inherit;font-size:13px;padding:9px 11px;border:0.5px solid var(--color-border-tertiary);border-radius:6px;background:var(--color-background-primary);color:var(--color-text-primary);outline:none;line-height:1.4;}
+.tk-input:focus,.tk-input:focus-visible{border-color:var(--color-text-primary);outline:none;box-shadow:none;}
+.tk-input::placeholder{color:var(--color-text-tertiary);}
+.tk-divider{border-top:0.5px solid var(--color-border-tertiary);margin:8px 0;}
+.tk-date-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
+.tk-select{appearance:none;-webkit-appearance:none;-moz-appearance:none;background-image:url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888780' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpath d='M6 9l6 6 6-6'/%3e%3c/svg%3e");background-repeat:no-repeat;background-position:right 9px center;padding-right:26px;cursor:pointer;}
+.tk-modal-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.45);display:flex;align-items:flex-end;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity 0.2s ease;border-radius:var(--border-radius-lg);overflow:hidden;}
+.tk-modal-overlay.active{opacity:1;pointer-events:auto;}
+.tk-modal{background:var(--color-background-primary);border-radius:16px 16px 0 0;width:100%;max-height:92%;display:flex;flex-direction:column;transform:translateY(100%);transition:transform 0.25s cubic-bezier(0.4,0,0.2,1);}
+.tk-modal-overlay.active .tk-modal{transform:translateY(0);}
+.tk-modal-title{font-size:16px;font-weight:500;color:var(--color-text-primary);line-height:1.4;}
+.tk-modal-header{display:flex;justify-content:space-between;align-items:flex-start;padding:18px 16px 12px;gap:8px;flex-shrink:0;}
+.tk-modal-body{padding:0 16px 4px;flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:14px;-webkit-overflow-scrolling:touch;}
+.tk-modal-body::-webkit-scrollbar{width:3px;}
+.tk-modal-body::-webkit-scrollbar-track{background:transparent;}
+.tk-modal-body::-webkit-scrollbar-thumb{background:var(--color-border-secondary);border-radius:2px;}
+.tk-modal-footer{padding:12px 16px 16px;flex-shrink:0;border-top:0.5px solid var(--color-border-tertiary);display:flex;flex-direction:column;gap:8px;}
+.tk-cancel-agree{display:flex;align-items:flex-start;gap:10px;cursor:pointer;font-size:12px;color:var(--color-text-secondary);user-select:none;padding:6px 0;line-height:1.5;}
+.tk-policy-table{width:100%;table-layout:fixed;border-collapse:collapse;font-size:10px;line-height:1.4;}
+.tk-policy-table th{background:var(--color-background-secondary);padding:8px 4px;font-weight:500;color:var(--color-text-primary);text-align:center;border-top:0.5px solid var(--color-border-tertiary);border-bottom:0.5px solid var(--color-border-tertiary);font-size:11px;word-break:keep-all;}
+.tk-policy-table td{padding:8px 4px;text-align:center;color:var(--color-text-secondary);border-bottom:0.5px solid var(--color-border-tertiary);vertical-align:middle;word-break:keep-all;}
+.tk-policy-table .tk-row-highlight td{background:rgba(255,39,61,0.06);}
+.tk-policy-table .tk-fee-red{color:#FF273D;font-weight:500;}
+.tk-refund-box{background:var(--color-background-secondary);border-radius:6px;padding:12px;}
+.tk-refund-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:4px 0;color:var(--color-text-secondary);}
+.tk-refund-row.tk-refund-total{border-top:0.5px solid var(--color-border-tertiary);padding-top:10px;margin-top:6px;font-size:13px;font-weight:500;color:var(--color-text-primary);}
+.tk-refund-amount{color:#FF273D;font-size:15px;font-weight:500;}
+.tk-selected-show-box{background:rgba(255,39,61,0.06);border:1px solid #FF273D;border-radius:8px;padding:14px;display:flex;align-items:center;gap:10px;}
+.tk-selected-show-box .tk-selected-icon{color:#FF273D;flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.tk-selected-show-box .tk-selected-content{display:flex;flex-direction:column;gap:2px;flex:1;}
+.tk-selected-show-box .tk-selected-label{font-size:11px;color:var(--color-text-tertiary);}
+.tk-selected-show-box .tk-selected-value{font-size:14px;font-weight:500;color:var(--color-text-primary);}
+.tk-ic{display:inline-block;vertical-align:middle;flex-shrink:0;}
+</style>
+</head>
+<body>
+
+<div class="tk-frame">
+  <div class="tk-hint">버튼을 눌러 화면 흐름을 확인할 수 있어요</div>
+  <div class="tk-phone">
+
+    <div class="tk-page active" id="tk-detail">
+      <div class="tk-head-split">
+        <span>공연 상세</span>
+        <button class="tk-square-btn" aria-label="예매 내역으로 이동" onclick="tkNav('tk-history')">
+          <svg class="tk-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M9 4v16"/></svg>
+        </button>
+      </div>
+      <div style="height:140px;background:rgba(28,28,31,0.03);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg class="tk-ic" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#FF273D" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="17" r="3"/><circle cx="16" cy="17" r="3"/><path d="M9 17V4h10v13"/><path d="M9 8h10"/></svg>
+      </div>
+      <div class="tk-body">
+        <div>
+          <div style="font-size:17px;font-weight:500;line-height:1.3;margin-bottom:12px;">시티 X 라컴 북살롱 콘서트</div>
+          <div class="tk-meta">
+            <span class="tk-meta-key">기간</span>
+            <span class="tk-meta-val">2026.06.10 ~ 06.30</span>
+            <span class="tk-meta-key">장소</span>
+            <span class="tk-meta-val">링크아트센터드림</span>
+            <span class="tk-meta-key">관람등급</span>
+            <span class="tk-meta-val">만 7세 이상</span>
+            <span class="tk-meta-key">공연시간</span>
+            <span class="tk-meta-val">약 150분</span>
+            <span class="tk-meta-key">좌석</span>
+            <span class="tk-meta-val">비지정 좌석</span>
+            <span class="tk-meta-key">가격</span>
+            <span class="tk-meta-val">50,000원</span>
+          </div>
+        </div>
+        <div style="border-top:0.5px solid var(--color-border-tertiary);padding-top:12px;">
+          <div style="font-weight:500;margin-bottom:6px;font-size:13px;">상세 설명</div>
+          <div style="color:var(--color-text-secondary);line-height:1.7;font-size:12px;">
+            책에서 탄생한 뮤지컬 작품들. 원작 도서와 뮤지컬 넘버가 한자리에서 어우러지는 시티 X 라컴 북살롱 콘서트에 여러분을 초대합니다. 매주 새로운 작품과 함께, 해당 작품에 출연한 배우들과 라이브 연주자들이 특별한 무대를 선보입니다.
+          </div>
+        </div>
+        <div style="background:var(--color-background-warning);padding:8px 10px;border-radius:6px;margin-top:auto;">
+          <div style="color:var(--color-text-warning);font-size:12px;line-height:1.4;display:flex;align-items:center;gap:5px;">
+            <svg class="tk-ic" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01"/><path d="M11 12h1v4h1"/></svg>
+            <span>1인 4매 / 회차당 2매 제한</span>
+          </div>
+        </div>
+      </div>
+      <div class="tk-cta">
+        <button class="tk-btn" style="background:var(--color-text-primary);color:var(--color-background-primary);" onclick="tkOpenShowModal()">예매하기</button>
+      </div>
+    </div>
+
+    <div class="tk-page" id="tk-purchase">
+      <div class="tk-head">
+        <button class="tk-icon-btn" aria-label="뒤로 가기" onclick="tkNav('tk-detail')">
+          <svg class="tk-ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M5 12l6 6"/><path d="M5 12l6-6"/></svg>
+        </button>
+        <span>결제</span>
+      </div>
+      <div class="tk-body">
+        <div style="background:var(--color-background-secondary);padding:12px 14px;border-radius:var(--border-radius-md);">
+          <div style="font-size:13px;font-weight:500;margin-bottom:5px;">시티 X 라컴 북살롱 콘서트</div>
+          <div style="color:var(--color-text-secondary);font-size:12px;line-height:1.6;">
+            <span id="tk-pay-show">06.13(토) 18시</span><br>링크아트센터드림<br>비지정 좌석 · 50,000원
+          </div>
+        </div>
+        <div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+            <span style="font-size:13px;font-weight:500;">구매 수량</span>
+            <span style="color:var(--color-text-tertiary);font-size:12px;">최대 2매</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;border:0.5px solid var(--color-border-tertiary);border-radius:6px;padding:5px 10px;">
+            <button class="tk-qty-btn" id="tk-qty-minus" aria-label="수량 감소" onclick="tkChangeQty(-1)">
+              <svg class="tk-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/></svg>
+            </button>
+            <span style="font-weight:500;font-size:16px;" id="tk-qty-val">1</span>
+            <button class="tk-qty-btn" id="tk-qty-plus" aria-label="수량 증가" onclick="tkChangeQty(1)">
+              <svg class="tk-ic" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="tk-divider"></div>
+
+        <div>
+          <div class="tk-row-label">예매자 정보</div>
+          <div style="display:flex;flex-direction:column;gap:10px;">
+            <div>
+              <div class="tk-input-label">예매자</div>
+              <input type="text" class="tk-input" id="tk-input-name" value="김시티" placeholder="이름" oninput="tkUpdateBooker()">
+            </div>
+            <div>
+              <div class="tk-input-label">생년월일</div>
+              <div class="tk-date-grid">
+                <select class="tk-input tk-select" id="tk-input-year" onchange="tkOnYearMonthChange()" aria-label="연도"></select>
+                <select class="tk-input tk-select" id="tk-input-month" onchange="tkOnYearMonthChange()" aria-label="월"></select>
+                <select class="tk-input tk-select" id="tk-input-day" onchange="tkUpdateBooker()" aria-label="일"></select>
+              </div>
+            </div>
+            <div>
+              <div class="tk-input-label">휴대폰</div>
+              <input type="tel" class="tk-input" id="tk-input-phone" value="010-1234-5678" placeholder="010-0000-0000" oninput="tkUpdateBooker()">
+            </div>
+          </div>
+          <div style="font-size:11px;color:var(--color-text-tertiary);margin-top:8px;line-height:1.5;">
+            티켓 수령 및 본인 확인을 위해 정확한 정보를 입력해주세요
+          </div>
+        </div>
+
+        <div class="tk-divider"></div>
+
+        <div>
+          <div class="tk-row-label">결제 방식</div>
+          <div style="border:1.5px solid #3182F6;background:#E8F3FF;border-radius:6px;padding:11px 12px;display:flex;align-items:center;gap:10px;">
+            <span style="background:#3182F6;color:#FFFFFF;font-size:12px;font-weight:500;padding:3px 9px;border-radius:4px;">toss</span>
+            <span style="font-size:12px;color:#1B64DA;">신용카드만 가능</span>
+          </div>
+        </div>
+        <div>
+          <div class="tk-row-label">약관 동의</div>
+          <div style="border:0.5px solid var(--color-border-tertiary);border-radius:6px;overflow:hidden;">
+            <label class="tk-agree-row tk-agree-master">
+              <input type="checkbox" id="tk-agree-all" class="tk-cb" onchange="tkToggleAll(this)">
+              <span style="flex:1;font-size:13px;font-weight:500;color:var(--color-text-primary);">전체 동의</span>
+            </label>
+            <label class="tk-agree-row">
+              <input type="checkbox" id="tk-agree-r1" class="tk-cb" onchange="tkUpdateAgree()">
+              <span style="flex:1;"><span style="color:#FF273D;">(필수)</span> 취소 규정 안내</span>
+              <svg class="tk-ic tk-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+            </label>
+            <label class="tk-agree-row">
+              <input type="checkbox" id="tk-agree-r2" class="tk-cb" onchange="tkUpdateAgree()">
+              <span style="flex:1;"><span style="color:#FF273D;">(필수)</span> 티켓 이용정책 동의</span>
+              <svg class="tk-ic tk-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+            </label>
+            <label class="tk-agree-row">
+              <input type="checkbox" id="tk-agree-o1" class="tk-cb" onchange="tkUpdateAgree()">
+              <span style="flex:1;"><span style="color:var(--color-text-tertiary);">(선택)</span> 개인정보 제 3자 제공 안내</span>
+              <svg class="tk-ic tk-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>
+            </label>
+          </div>
+        </div>
+        <div style="border-top:0.5px solid var(--color-border-tertiary);padding-top:12px;margin-top:auto;">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;">
+            <span style="font-size:13px;color:var(--color-text-secondary);">결제 금액</span>
+            <span style="font-size:19px;font-weight:500;" id="tk-total-price">50,000원</span>
+          </div>
+        </div>
+      </div>
+      <div class="tk-cta">
+        <button class="tk-btn" id="tk-pay-btn" style="background:#3182F6;color:#FFFFFF;" onclick="tkPay()" disabled>토스로 결제하기</button>
+      </div>
+    </div>
+
+    <div class="tk-page" id="tk-complete">
+      <div class="tk-head"><span>예매 완료</span></div>
+      <div class="tk-body" style="justify-content:center;align-items:center;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:14px;">
+          <div style="width:64px;height:64px;border-radius:50%;background:#FF273D;display:flex;align-items:center;justify-content:center;">
+            <svg class="tk-ic" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5l10-10"/></svg>
+          </div>
+          <div style="font-size:17px;font-weight:500;text-align:center;">예매가 완료되었습니다</div>
+          <div style="font-size:12px;color:var(--color-text-secondary);text-align:center;line-height:1.6;">
+            티켓 수령 시 구매 내역에서 티켓 예매 상세 내역과<br>본인 확인이 가능한 신분증을 제시해주세요.
+          </div>
+        </div>
+        <div style="width:100%;background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:14px;margin-top:20px;">
+          <div style="font-size:13px;font-weight:500;margin-bottom:9px;">시티 X 라컴 북살롱 콘서트</div>
+          <div style="display:grid;grid-template-columns:72px 1fr;gap:6px 10px;font-size:12px;line-height:1.4;">
+            <span style="color:var(--color-text-tertiary);">예매번호</span>
+            <span style="color:var(--color-text-secondary);font-family:var(--font-mono);font-size:11px;" id="tk-comp-resno">RES-260613-01</span>
+            <span style="color:var(--color-text-tertiary);">일시</span>
+            <span style="color:var(--color-text-secondary);" id="tk-comp-date">06.13(토) 18시</span>
+            <span style="color:var(--color-text-tertiary);">장소</span>
+            <span style="color:var(--color-text-secondary);">링크아트센터드림</span>
+            <span style="color:var(--color-text-tertiary);">좌석</span>
+            <span style="color:var(--color-text-secondary);" id="tk-comp-qty">비지정 좌석 · 1매</span>
+            <span style="color:var(--color-text-tertiary);">결제금액</span>
+            <span style="color:var(--color-text-primary);font-weight:500;" id="tk-comp-price">50,000원</span>
+          </div>
+        </div>
+      </div>
+      <div class="tk-cta tk-cta-stack">
+        <button class="tk-btn" style="background:var(--color-text-primary);color:var(--color-background-primary);" onclick="tkNav('tk-detail')">확인</button>
+        <button class="tk-btn" style="background:transparent;color:var(--color-text-secondary);" onclick="tkOpenBooking('b1')">예매 내역 보기</button>
+      </div>
+    </div>
+
+    <div class="tk-page" id="tk-history">
+      <div class="tk-head">
+        <button class="tk-icon-btn" aria-label="뒤로 가기" onclick="tkNav('tk-detail')">
+          <svg class="tk-ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M5 12l6 6"/><path d="M5 12l6-6"/></svg>
+        </button>
+        <span>예매 내역</span>
+      </div>
+      <div class="tk-body">
+        <div class="tk-list-item" onclick="tkOpenBooking('b1')">
+          <div style="font-size:13px;font-weight:500;line-height:1.35;margin-bottom:7px;" id="tk-hist-b1-title">시티 X 라컴 북살롱 콘서트</div>
+          <div style="font-size:12px;color:var(--color-text-secondary);line-height:1.6;" id="tk-hist-b1-info">
+            <span id="tk-hist-b1-date">06.13(토) 18시</span><br>
+            <span id="tk-hist-qty">비지정 좌석 · 1매</span><br>
+            <span style="color:var(--color-text-primary);font-weight:500;" id="tk-hist-b1-status">예매 완료</span>
+          </div>
+        </div>
+        <div class="tk-list-item" onclick="tkOpenBooking('b2')">
+          <div style="font-size:13px;font-weight:500;line-height:1.35;color:var(--color-text-secondary);margin-bottom:7px;">시티 X 라컴 북살롱 콘서트</div>
+          <div style="font-size:12px;color:var(--color-text-tertiary);line-height:1.6;">
+            06.20(토) 18시<br>비지정 좌석 · 1매<br>
+            <span>취소/환불 완료</span>
+          </div>
+        </div>
+        <div style="margin-top:auto;background:var(--color-background-warning);padding:9px 11px;border-radius:6px;">
+          <div style="font-size:12px;color:var(--color-text-warning);line-height:1.4;display:flex;align-items:center;gap:5px;">
+            <svg class="tk-ic" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01"/><path d="M11 12h1v4h1"/></svg>
+            <span>부분 취소는 불가합니다</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tk-page" id="tk-info">
+      <div class="tk-head">
+        <button class="tk-icon-btn" aria-label="뒤로 가기" onclick="tkNav('tk-history')">
+          <svg class="tk-ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M5 12l6 6"/><path d="M5 12l6-6"/></svg>
+        </button>
+        <span>예매 상세</span>
+      </div>
+      <div class="tk-body">
+        <div style="font-size:16px;font-weight:500;line-height:1.3;" id="tk-info-title">시티 X 라컴 북살롱 콘서트</div>
+        <div style="border-top:0.5px solid var(--color-border-tertiary);padding-top:12px;">
+          <div class="tk-row-label">예매 정보</div>
+          <div class="tk-meta">
+            <span class="tk-meta-key">예매번호</span>
+            <span class="tk-meta-val" style="font-family:var(--font-mono);font-size:11px;" id="tk-info-resno">RES-260613-01</span>
+            <span class="tk-meta-key">예매상태</span>
+            <span class="tk-meta-val" style="color:var(--color-text-primary);font-weight:500;" id="tk-info-status">예매 완료</span>
+            <span class="tk-meta-key">일시</span>
+            <span class="tk-meta-val" id="tk-info-date">06.13(토) 18시</span>
+            <span class="tk-meta-key">장소</span>
+            <span class="tk-meta-val" id="tk-info-venue">링크아트센터드림</span>
+            <span class="tk-meta-key">좌석</span>
+            <span class="tk-meta-val" id="tk-info-seat">비지정 좌석 · 1매</span>
+          </div>
+        </div>
+        <div style="border-top:0.5px solid var(--color-border-tertiary);padding-top:12px;">
+          <div class="tk-row-label">예매자 정보</div>
+          <div class="tk-meta">
+            <span class="tk-meta-key">예매자</span>
+            <span class="tk-meta-val" id="tk-info-name">김시티</span>
+            <span class="tk-meta-key">생년월일</span>
+            <span class="tk-meta-val" id="tk-info-birth">1990.05.15</span>
+            <span class="tk-meta-key">휴대폰</span>
+            <span class="tk-meta-val" id="tk-info-phone">010-1234-5678</span>
+          </div>
+        </div>
+        <div style="border-top:0.5px solid var(--color-border-tertiary);padding-top:12px;">
+          <div class="tk-row-label">결제 정보</div>
+          <div class="tk-meta">
+            <span class="tk-meta-key">결제수단</span>
+            <span class="tk-meta-val" id="tk-info-method">토스 신용카드</span>
+            <span class="tk-meta-key">결제금액</span>
+            <span class="tk-meta-val" style="color:var(--color-text-primary);font-weight:500;" id="tk-info-price">50,000원</span>
+            <span class="tk-meta-key">결제일시</span>
+            <span class="tk-meta-val" id="tk-info-paidat">2026.05.06 14:32</span>
+          </div>
+        </div>
+      </div>
+      <div class="tk-cta" id="tk-info-cta">
+        <button class="tk-btn" style="background:var(--color-background-primary);color:var(--color-text-primary);border:0.5px solid var(--color-border-secondary);" onclick="tkOpenCancelModal()">예매 취소</button>
+      </div>
+    </div>
+
+    <div class="tk-page" id="tk-cancelled">
+      <div class="tk-head"><span>예매 취소</span></div>
+      <div class="tk-body" style="justify-content:center;align-items:center;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:14px;">
+          <div style="width:64px;height:64px;border-radius:50%;background:#FF273D;display:flex;align-items:center;justify-content:center;">
+            <svg class="tk-ic" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+          </div>
+          <div style="font-size:17px;font-weight:500;text-align:center;">예매가 취소되었습니다</div>
+          <div style="font-size:12px;color:var(--color-text-secondary);text-align:center;line-height:1.6;">
+            환불은 영업일 기준 3~5일 이내에<br>결제 수단으로 처리됩니다.
+          </div>
+        </div>
+        <div style="width:100%;background:var(--color-background-secondary);border-radius:var(--border-radius-md);padding:14px;margin-top:20px;">
+          <div style="font-size:13px;font-weight:500;margin-bottom:9px;">시티 X 라컴 북살롱 콘서트</div>
+          <div style="display:grid;grid-template-columns:72px 1fr;gap:6px 10px;font-size:12px;line-height:1.4;">
+            <span style="color:var(--color-text-tertiary);">예매번호</span>
+            <span style="color:var(--color-text-secondary);font-family:var(--font-mono);font-size:11px;" id="tk-cancel-resno">RES-260613-01</span>
+            <span style="color:var(--color-text-tertiary);">일시</span>
+            <span style="color:var(--color-text-secondary);" id="tk-cancel-date">06.13(토) 18시</span>
+            <span style="color:var(--color-text-tertiary);">좌석</span>
+            <span style="color:var(--color-text-secondary);" id="tk-cancel-seat">비지정 좌석 · 1매</span>
+            <span style="color:var(--color-text-tertiary);">환불금액</span>
+            <span style="color:var(--color-text-primary);font-weight:500;" id="tk-cancel-refund">50,000원</span>
+          </div>
+        </div>
+      </div>
+      <div class="tk-cta">
+        <button class="tk-btn" style="background:var(--color-text-primary);color:var(--color-background-primary);" onclick="tkNav('tk-history')">확인</button>
+      </div>
+    </div>
+
+    <div class="tk-modal-overlay" id="tk-show-modal" onclick="if(event.target===this)tkCloseShowModal()">
+      <div class="tk-modal">
+        <div class="tk-modal-header">
+          <div class="tk-modal-title">회차 선택</div>
+          <button class="tk-icon-btn" aria-label="닫기" onclick="tkCloseShowModal()">
+            <svg class="tk-ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="tk-modal-body">
+          <div style="font-size:11px;color:var(--color-text-tertiary);line-height:1.5;">관람을 원하시는 일시를 선택해주세요</div>
+          <div>
+            <div class="tk-row-label">회차</div>
+            <select class="tk-input tk-select" id="tk-show-select" onchange="tkOnShowSelectChange()" aria-label="회차 선택"></select>
+          </div>
+          <div id="tk-selected-show-box" class="tk-selected-show-box" style="display:none;">
+            <div class="tk-selected-icon">
+              <svg class="tk-ic" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M16 3v4"/><path d="M8 3v4"/><path d="M4 11h16"/><path d="M8 15h2v2H8z"/></svg>
+            </div>
+            <div class="tk-selected-content">
+              <span class="tk-selected-label">선택한 회차</span>
+              <span class="tk-selected-value" id="tk-selected-show-text">06.13(토) 18시</span>
+            </div>
+          </div>
+        </div>
+        <div class="tk-modal-footer">
+          <button class="tk-btn" id="tk-show-next" style="background:var(--color-text-primary);color:var(--color-background-primary);" onclick="tkConfirmShowSelect()" disabled>다음</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="tk-modal-overlay" id="tk-cancel-modal" onclick="if(event.target===this)tkCloseCancelModal()">
+      <div class="tk-modal">
+        <div class="tk-modal-header">
+          <div class="tk-modal-title">예매를 취소하시겠습니까?</div>
+          <button class="tk-icon-btn" aria-label="닫기" onclick="tkCloseCancelModal()">
+            <svg class="tk-ic" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="tk-modal-body">
+          <div>
+            <div style="font-size:13px;font-weight:500;line-height:1.4;margin-bottom:6px;">취소일자에 따라서 취소수수료가 달라집니다.</div>
+            <div style="font-size:11px;color:var(--color-text-tertiary);line-height:1.5;margin-bottom:10px;">* 단, 예매당일 밤 12시 이전 취소시에는 취소수수료 없음(취소기한내에 한함)</div>
+            <table class="tk-policy-table">
+              <thead>
+                <tr>
+                  <th>내용</th>
+                  <th>취소일</th>
+                  <th>취소수수료</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>미부과기간</td>
+                  <td>2026.05.06 ~<br>2026.05.13</td>
+                  <td class="tk-fee-red">없음</td>
+                </tr>
+                <tr>
+                  <td>예매후 8일~<br>관람일 10일전까지</td>
+                  <td>2026.05.14 ~<br>2026.05.24</td>
+                  <td><span class="tk-fee-red">장당 4000원</span><br>(티켓금액의<br>10%한도)</td>
+                </tr>
+                <tr class="tk-row-highlight">
+                  <td>관람일 9일전~<br>7일전까지</td>
+                  <td>2026.05.25 ~<br>2026.05.27</td>
+                  <td>티켓금액의 10%</td>
+                </tr>
+                <tr class="tk-row-highlight">
+                  <td>관람일 6일전~<br>3일전까지</td>
+                  <td>2026.05.28 ~<br>2026.05.31</td>
+                  <td>티켓금액의 20%</td>
+                </tr>
+                <tr class="tk-row-highlight">
+                  <td>관람일 2일전~<br>1일전까지</td>
+                  <td>2026.06.01 ~<br>2026.06.02</td>
+                  <td>티켓금액의 30%</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div>
+            <div style="font-size:13px;font-weight:500;margin-bottom:8px;">환불 금액</div>
+            <div class="tk-refund-box">
+              <div class="tk-refund-row">
+                <span>결제금액</span>
+                <span id="tk-modal-paid">50,000원</span>
+              </div>
+              <div class="tk-refund-row">
+                <span>취소수수료</span>
+                <span id="tk-modal-fee">0원</span>
+              </div>
+              <div class="tk-refund-row tk-refund-total">
+                <span>환불금액</span>
+                <span class="tk-refund-amount" id="tk-modal-refund">50,000원</span>
+              </div>
+            </div>
+            <div style="font-size:10px;color:var(--color-text-tertiary);line-height:1.5;margin-top:8px;">
+              현재 취소일은 미부과기간(2026.05.06 ~ 2026.05.13)에 해당하여 취소수수료가 부과되지 않습니다.
+            </div>
+          </div>
+        </div>
+        <div class="tk-modal-footer">
+          <label class="tk-cancel-agree">
+            <input type="checkbox" id="tk-cancel-cb" class="tk-cb" onchange="tkUpdateCancelBtn()">
+            <span>취소수수료 및 환불금액을 확인하였으며, 동의합니다</span>
+          </label>
+          <button class="tk-btn" id="tk-cancel-confirm" style="background:#FF273D;color:#FFFFFF;" onclick="tkConfirmCancel()" disabled>예매 취소하기</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+var tkShowSchedule = [
+  { date: '06.10', dow: '수', times: ['20시'] },
+  { date: '06.11', dow: '목', times: ['20시'] },
+  { date: '06.12', dow: '금', times: ['20시'] },
+  { date: '06.13', dow: '토', times: ['14시','18시'] },
+  { date: '06.14', dow: '일', times: ['14시','18시'] },
+  { date: '06.17', dow: '수', times: ['20시'] },
+  { date: '06.18', dow: '목', times: ['20시'] },
+  { date: '06.19', dow: '금', times: ['20시'] },
+  { date: '06.20', dow: '토', times: ['14시','18시'] },
+  { date: '06.21', dow: '일', times: ['14시','18시'] },
+  { date: '06.24', dow: '수', times: ['20시'] },
+  { date: '06.25', dow: '목', times: ['20시'] },
+  { date: '06.26', dow: '금', times: ['20시'] },
+  { date: '06.27', dow: '토', times: ['14시','18시'] },
+  { date: '06.28', dow: '일', times: ['14시','18시'] }
+];
+
+var tkState = {
+  qty: 1, unit: 50000, max: 2, min: 1,
+  selectedShow: '06.13(토) 18시',
+  booker: { name: '김시티', birth: '1990.05.15', phone: '010-1234-5678' }
+};
+
+var tkBookings = {
+  b1: { isLive: true, title: '시티 X 라컴 북살롱 콘서트', date: '06.13(토) 18시', venue: '링크아트센터드림', method: '토스 신용카드', paidAt: '2026.05.06 14:32', resNo: 'RES-260613-01', status: '예매 완료' },
+  b2: { isLive: false, title: '시티 X 라컴 북살롱 콘서트', date: '06.20(토) 18시', venue: '링크아트센터드림', seat: '비지정 좌석 · 1매', price: 50000, method: '토스 신용카드', paidAt: '2026.04.15 11:08', resNo: 'RES-260620-01', status: '취소/환불 완료', booker: { name: '김시티', birth: '1990.05.15', phone: '010-1234-5678' } }
+};
+
+var tkPendingShow = null;
+
+var fmt = function(n){ return n.toLocaleString() + '원'; };
+var $ = function(id){ return document.getElementById(id); };
+var pad2 = function(n){ return (n < 10 ? '0' : '') + n; };
+
+function tkShowToResNo(show){
+  var match = show.match(/^(\d{2})\.(\d{2})/);
+  if(!match) return 'RES-26000000-01';
+  return 'RES-26' + match[1] + match[2] + '-01';
+}
+
+function tkChangeQty(delta){
+  var n = tkState.qty + delta;
+  if(n < tkState.min || n > tkState.max) return;
+  tkState.qty = n;
+  tkRender();
+}
+
+function tkRender(){
+  var s = tkState;
+  if($('tk-qty-val')) $('tk-qty-val').textContent = s.qty;
+  if($('tk-total-price')) $('tk-total-price').textContent = fmt(s.qty * s.unit);
+  if($('tk-qty-minus')) $('tk-qty-minus').disabled = (s.qty <= s.min);
+  if($('tk-qty-plus')) $('tk-qty-plus').disabled = (s.qty >= s.max);
+  if($('tk-comp-qty')) $('tk-comp-qty').textContent = '비지정 좌석 · ' + s.qty + '매';
+  if($('tk-comp-price')) $('tk-comp-price').textContent = fmt(s.qty * s.unit);
+  if($('tk-hist-qty')) $('tk-hist-qty').textContent = '비지정 좌석 · ' + s.qty + '매';
+
+  var resNo = tkShowToResNo(s.selectedShow);
+  if($('tk-pay-show')) $('tk-pay-show').textContent = s.selectedShow;
+  if($('tk-comp-date')) $('tk-comp-date').textContent = s.selectedShow;
+  if($('tk-comp-resno')) $('tk-comp-resno').textContent = resNo;
+  if($('tk-hist-b1-date')) $('tk-hist-b1-date').textContent = s.selectedShow;
+  tkBookings.b1.date = s.selectedShow;
+  tkBookings.b1.resNo = resNo;
+}
+
+function tkInitShowSelect(){
+  var sel = $('tk-show-select');
+  if(!sel) return;
+  var html = '<option value="">회차를 선택해주세요</option>';
+  for(var i = 0; i < tkShowSchedule.length; i++){
+    var sched = tkShowSchedule[i];
+    for(var j = 0; j < sched.times.length; j++){
+      var label = sched.date + '(' + sched.dow + ') ' + sched.times[j];
+      html += '<option value="' + label + '">' + label + '</option>';
+    }
+  }
+  sel.innerHTML = html;
+}
+
+function tkOnShowSelectChange(){
+  var sel = $('tk-show-select');
+  var box = $('tk-selected-show-box');
+  var text = $('tk-selected-show-text');
+  var next = $('tk-show-next');
+  if(!sel) return;
+  if(sel.value){
+    tkPendingShow = sel.value;
+    if(text) text.textContent = sel.value;
+    if(box) box.style.display = '';
+    if(next) next.disabled = false;
+  } else {
+    tkPendingShow = null;
+    if(box) box.style.display = 'none';
+    if(next) next.disabled = true;
+  }
+}
+
+function tkOpenShowModal(){
+  tkPendingShow = null;
+  var sel = $('tk-show-select');
+  if(sel) sel.value = '';
+  var box = $('tk-selected-show-box');
+  if(box) box.style.display = 'none';
+  var next = $('tk-show-next');
+  if(next) next.disabled = true;
+  if($('tk-show-modal')) $('tk-show-modal').classList.add('active');
+  var body = document.querySelector('#tk-show-modal .tk-modal-body');
+  if(body) body.scrollTop = 0;
+}
+
+function tkCloseShowModal(){
+  if($('tk-show-modal')) $('tk-show-modal').classList.remove('active');
+}
+
+function tkConfirmShowSelect(){
+  if(!tkPendingShow) return;
+  tkState.selectedShow = tkPendingShow;
+  tkRender();
+  tkCloseShowModal();
+  setTimeout(function(){ tkNav('tk-purchase'); }, 250);
+}
+
+function tkInitDatePicker(){
+  var yearSel = $('tk-input-year');
+  var monthSel = $('tk-input-month');
+  if(!yearSel || !monthSel) return;
+
+  var html = '';
+  for(var y = 2026; y >= 1925; y--){
+    var sel = (y === 1990) ? ' selected' : '';
+    html += '<option value="' + y + '"' + sel + '>' + y + '년</option>';
+  }
+  yearSel.innerHTML = html;
+
+  html = '';
+  for(var m = 1; m <= 12; m++){
+    var sel = (m === 5) ? ' selected' : '';
+    html += '<option value="' + m + '"' + sel + '>' + m + '월</option>';
+  }
+  monthSel.innerHTML = html;
+
+  tkRebuildDays(15);
+}
+
+function tkRebuildDays(preferDay){
+  var yearSel = $('tk-input-year');
+  var monthSel = $('tk-input-month');
+  var daySel = $('tk-input-day');
+  if(!yearSel || !monthSel || !daySel) return;
+
+  var year = parseInt(yearSel.value, 10);
+  var month = parseInt(monthSel.value, 10);
+  var maxDay = new Date(year, month, 0).getDate();
+
+  var keepDay;
+  if(typeof preferDay === 'number'){
+    keepDay = preferDay;
+  } else {
+    keepDay = parseInt(daySel.value, 10) || 1;
+  }
+  if(keepDay > maxDay) keepDay = maxDay;
+  if(keepDay < 1) keepDay = 1;
+
+  var html = '';
+  for(var d = 1; d <= maxDay; d++){
+    var sel = (d === keepDay) ? ' selected' : '';
+    html += '<option value="' + d + '"' + sel + '>' + d + '일</option>';
+  }
+  daySel.innerHTML = html;
+}
+
+function tkOnYearMonthChange(){
+  tkRebuildDays();
+  tkUpdateBooker();
+}
+
+function tkUpdateBooker(){
+  if($('tk-input-name')) tkState.booker.name = $('tk-input-name').value;
+
+  var yearSel = $('tk-input-year');
+  var monthSel = $('tk-input-month');
+  var daySel = $('tk-input-day');
+  if(yearSel && monthSel && daySel){
+    var y = yearSel.value;
+    var m = pad2(parseInt(monthSel.value, 10));
+    var d = pad2(parseInt(daySel.value, 10));
+    tkState.booker.birth = y + '.' + m + '.' + d;
+  }
+
+  if($('tk-input-phone')) tkState.booker.phone = $('tk-input-phone').value;
+}
+
+function tkToggleAll(cb){
+  var checked = cb.checked;
+  $('tk-agree-r1').checked = checked;
+  $('tk-agree-r2').checked = checked;
+  $('tk-agree-o1').checked = checked;
+  tkUpdatePayBtn();
+}
+
+function tkUpdateAgree(){
+  var r1 = $('tk-agree-r1').checked;
+  var r2 = $('tk-agree-r2').checked;
+  var o1 = $('tk-agree-o1').checked;
+  $('tk-agree-all').checked = (r1 && r2 && o1);
+  tkUpdatePayBtn();
+}
+
+function tkUpdatePayBtn(){
+  var r1 = $('tk-agree-r1');
+  var r2 = $('tk-agree-r2');
+  var btn = $('tk-pay-btn');
+  if(!btn || !r1 || !r2) return;
+  btn.disabled = !(r1.checked && r2.checked);
+}
+
+function tkPay(){
+  tkBookings.b1.status = '예매 완료';
+  var title = $('tk-hist-b1-title');
+  var info = $('tk-hist-b1-info');
+  var status = $('tk-hist-b1-status');
+  if(title) title.style.color = '';
+  if(info) info.style.color = '';
+  if(status){
+    status.style.color = '';
+    status.style.fontWeight = '';
+    status.textContent = '예매 완료';
+  }
+  tkNav('tk-complete');
+}
+
+function tkOpenBooking(id){
+  var b = tkBookings[id];
+  if(!b) return;
+  var seat = b.isLive ? ('비지정 좌석 · ' + tkState.qty + '매') : b.seat;
+  var price = b.isLive ? (tkState.qty * tkState.unit) : b.price;
+  var booker = b.isLive ? tkState.booker : b.booker;
+
+  if($('tk-info-title')) $('tk-info-title').textContent = b.title;
+  if($('tk-info-resno')) $('tk-info-resno').textContent = b.resNo;
+  if($('tk-info-status')) $('tk-info-status').textContent = b.status;
+  if($('tk-info-date')) $('tk-info-date').textContent = b.date;
+  if($('tk-info-venue')) $('tk-info-venue').textContent = b.venue;
+  if($('tk-info-seat')) $('tk-info-seat').textContent = seat;
+  if($('tk-info-name')) $('tk-info-name').textContent = booker.name;
+  if($('tk-info-birth')) $('tk-info-birth').textContent = booker.birth;
+  if($('tk-info-phone')) $('tk-info-phone').textContent = booker.phone;
+  if($('tk-info-method')) $('tk-info-method').textContent = b.method;
+  if($('tk-info-price')) $('tk-info-price').textContent = fmt(price);
+  if($('tk-info-paidat')) $('tk-info-paidat').textContent = b.paidAt;
+
+  var cta = $('tk-info-cta');
+  if(cta) cta.style.display = (b.status === '예매 완료') ? 'block' : 'none';
+  tkNav('tk-info');
+}
+
+function tkOpenCancelModal(){
+  if($('tk-cancel-cb')) $('tk-cancel-cb').checked = false;
+
+  var paid = tkState.qty * tkState.unit;
+  var fee = 0;
+  var refund = paid - fee;
+  if($('tk-modal-paid')) $('tk-modal-paid').textContent = fmt(paid);
+  if($('tk-modal-fee')) $('tk-modal-fee').textContent = fmt(fee);
+  if($('tk-modal-refund')) $('tk-modal-refund').textContent = fmt(refund);
+
+  tkUpdateCancelBtn();
+  if($('tk-cancel-modal')) $('tk-cancel-modal').classList.add('active');
+  var modalBody = document.querySelector('#tk-cancel-modal .tk-modal-body');
+  if(modalBody) modalBody.scrollTop = 0;
+}
+
+function tkCloseCancelModal(){
+  if($('tk-cancel-modal')) $('tk-cancel-modal').classList.remove('active');
+}
+
+function tkUpdateCancelBtn(){
+  var cb = $('tk-cancel-cb');
+  var btn = $('tk-cancel-confirm');
+  if(btn && cb) btn.disabled = !cb.checked;
+}
+
+function tkConfirmCancel(){
+  tkBookings.b1.status = '취소/환불 완료';
+
+  var title = $('tk-hist-b1-title');
+  var info = $('tk-hist-b1-info');
+  var status = $('tk-hist-b1-status');
+  if(title) title.style.color = 'var(--color-text-secondary)';
+  if(info) info.style.color = 'var(--color-text-tertiary)';
+  if(status){
+    status.style.color = 'var(--color-text-tertiary)';
+    status.style.fontWeight = 'normal';
+    status.textContent = '취소/환불 완료';
+  }
+
+  if($('tk-cancel-seat')) $('tk-cancel-seat').textContent = '비지정 좌석 · ' + tkState.qty + '매';
+  if($('tk-cancel-refund')) $('tk-cancel-refund').textContent = fmt(tkState.qty * tkState.unit);
+  if($('tk-cancel-date')) $('tk-cancel-date').textContent = tkState.selectedShow;
+  if($('tk-cancel-resno')) $('tk-cancel-resno').textContent = tkShowToResNo(tkState.selectedShow);
+
+  tkCloseCancelModal();
+  setTimeout(function(){ tkNav('tk-cancelled'); }, 250);
+}
+
+function tkNav(id){
+  var pages=document.querySelectorAll('.tk-page');
+  for(var i=0;i<pages.length;i++) pages[i].classList.remove('active');
+  var t=document.getElementById(id);
+  if(t) t.classList.add('active');
+}
+
+tkInitShowSelect();
+tkInitDatePicker();
+tkRender();
+tkUpdatePayBtn();
+</script>
+
+</body>
+</html>
